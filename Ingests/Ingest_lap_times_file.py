@@ -6,19 +6,14 @@
 # Library
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
-# Set access key 
-spark.conf.set(
-    f"fs.azure.account.key.{acc_name}.dfs.core.windows.net",
-    acc_access_token
-)
-# Path
-input_path = 'abfss://raw@formula12609dl.dfs.core.windows.net/lap_times'
-output_path ='abfss://processed@formula12609dl.dfs.core.windows.net/lap_times'
-
+# Parameter
+dbutils.widgets.text('p_file_date','')
+p_file_date = dbutils.widgets.get('p_file_date')
 
 # COMMAND ----------
 
 #Define schema 
+input_path = f'{raw_path}/{p_file_date}/lap_times'
 lap_times_schema = StructType([
     StructField('raceId',IntegerType(),False),
     StructField('driverId',IntegerType(),False),
@@ -29,7 +24,6 @@ lap_times_schema = StructType([
 ])
 
 #read file csv
-# results_df = spark.read.json(input_path,schema =results_schema)
 lap_times_df = spark.read.csv(input_path,schema=lap_times_schema)
                    
 
@@ -43,7 +37,8 @@ lap_times_df.printSchema()
 lap_times_df = lap_times_df\
                     .withColumnRenamed('raceId','race_id')\
                     .withColumnRenamed('driverId','driver_id')\
-                    .withColumn('ingest_date',current_timestamp())
+                    .withColumn('ingest_date',current_timestamp())\
+                    .withColumn('file_date',lit(p_file_date))
 
 
 # COMMAND ----------
@@ -54,11 +49,12 @@ display(lap_times_df)
 # COMMAND ----------
 
 # write to datalake
-lap_times_df.write.mode('overwrite').parquet(output_path)
+lap_times_df.write.mode('append').format('parquet').saveAsTable('f1_processed.lap_times')
 
 # COMMAND ----------
 
-display(dbutils.fs.ls(output_path))
+# MAGIC %sql
+# MAGIC select * from f1_processed.lap_times;
 
 # COMMAND ----------
 

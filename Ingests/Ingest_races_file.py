@@ -6,19 +6,14 @@
 # Library
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
-# Set access key 
-spark.conf.set(
-    f"fs.azure.account.key.{acc_name}.dfs.core.windows.net",
-    acc_access_token
-)
-# Path
-input_path = 'abfss://raw@formula12609dl.dfs.core.windows.net/races.csv'
-output_path ='abfss://processed@formula12609dl.dfs.core.windows.net/races'
-
+# Parameter
+dbutils.widgets.text('p_file_date','')
+p_file_date = dbutils.widgets.get('p_file_date')
 
 # COMMAND ----------
 
 #Define schema 
+input_path = f'{raw_path}/{p_file_date}/races.csv'
 races_schema = StructType([
     StructField('raceId',IntegerType(),False),
     StructField('year',IntegerType(),True),
@@ -44,8 +39,10 @@ races_df = races_df\
                     .withColumnRenamed('circuitId','circuit_id')\
                     .withColumnRenamed('year','race_year')\
                     .withColumn('race_timestamp',concat(col('date'),lit(' '),col('time')))\
-                    .drop('url','date','time')\
-                    .withColumn('ingest_date',current_timestamp())
+                    .withColumn('ingest_date',current_timestamp())\
+                    .withColumn('file_date',lit(p_file_date)) \
+                    .drop('url','date','time')
+
 
 
 # COMMAND ----------
@@ -56,8 +53,10 @@ display(races_df)
 # COMMAND ----------
 
 # write to datalake
-races_df.write.mode('overwrite').partitionBy('race_year').parquet(output_path)
+output_path = f"{processed_path}/races"
+races_df.write.mode("overwrite").partitionBy("race_year").format('parquet').saveAsTable("f1_processed.races",path = output_path)
 
 # COMMAND ----------
 
-# display(dbutils.fs.ls(output_path))
+# MAGIC %sql
+# MAGIC select * from f1_processed.races  ;

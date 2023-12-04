@@ -3,22 +3,21 @@
 
 # COMMAND ----------
 
+# MAGIC %run ../Includes/common_functions
+
+# COMMAND ----------
+
 # Library
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
-# Set access key 
-spark.conf.set(
-    f"fs.azure.account.key.{acc_name}.dfs.core.windows.net",
-    acc_access_token
-)
-# Path
-input_path = 'abfss://raw@formula12609dl.dfs.core.windows.net/pit_stops.json'
-output_path ='abfss://processed@formula12609dl.dfs.core.windows.net/pitstops'
-
+# Parameter
+dbutils.widgets.text('p_file_date','')
+p_file_date = dbutils.widgets.get('p_file_date')
 
 # COMMAND ----------
 
 #Define schema 
+input_path = f'{raw_path}/{p_file_date}/pit_stops.json'
 pitstops_schema = StructType([
     StructField('raceId',IntegerType(),False),
     StructField('driverId',IntegerType(),True),
@@ -43,7 +42,8 @@ pitstops_df.printSchema()
 pitstops_df = pitstops_df\
                     .withColumnRenamed('raceId','race_id')\
                     .withColumnRenamed('driverId','driver_id')\
-                    .withColumn('ingest_date',current_timestamp())
+                    .withColumn('ingest_date',current_timestamp())\
+                    .withColumn('file_date',lit(p_file_date))
 
 
 # COMMAND ----------
@@ -54,8 +54,9 @@ display(pitstops_df)
 # COMMAND ----------
 
 # write to datalake
-pitstops_df.write.mode('overwrite').parquet(output_path)
+pitstops_df.write.mode('append').format('parquet').saveAsTable('f1_processed.pitstops')
 
 # COMMAND ----------
 
-display(dbutils.fs.ls(output_path))
+# MAGIC %sql
+# MAGIC select * from f1_processed.pitstops

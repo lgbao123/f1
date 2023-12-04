@@ -1,24 +1,24 @@
 # Databricks notebook source
 # MAGIC %run ../Includes/configuration
+# MAGIC
+
+# COMMAND ----------
+
+# MAGIC %run ../Includes/common_functions
 
 # COMMAND ----------
 
 # Library
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
-# Set access key 
-spark.conf.set(
-    f"fs.azure.account.key.{acc_name}.dfs.core.windows.net",
-    acc_access_token
-)
-# Path
-input_path = 'abfss://raw@formula12609dl.dfs.core.windows.net/results.json'
-output_path ='abfss://processed@formula12609dl.dfs.core.windows.net/results'
-
+# Parameter
+dbutils.widgets.text('p_file_date','')
+p_file_date = dbutils.widgets.get('p_file_date')
 
 # COMMAND ----------
 
 #Define schema 
+input_path = f'{raw_path}/{p_file_date}/results.json'
 results_schema = StructType([
     StructField('resultId',IntegerType(),False),
     StructField('constructorId',IntegerType(),True),
@@ -62,6 +62,7 @@ results_df = results_df\
                     .withColumnRenamed('raceId','race_id')\
                     .withColumnRenamed('resultId','result_id')\
                     .withColumn('ingest_date',current_timestamp())\
+                    .withColumn('file_date',lit(p_file_date))\
                     .drop('statusId')
 
 
@@ -73,8 +74,4 @@ display(results_df)
 # COMMAND ----------
 
 # write to datalake
-results_df.write.mode('overwrite').partitionBy('race_id').parquet(output_path)
-
-# COMMAND ----------
-
-# display(dbutils.fs.ls(output_path))
+partitionOverwrite(dbname='f1_processed',tablename='results',df=results_df,parttion_column='race_id')

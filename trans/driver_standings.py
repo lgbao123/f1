@@ -3,14 +3,16 @@
 
 # COMMAND ----------
 
+# MAGIC %run ../Includes/common_functions
+
+# COMMAND ----------
+
 # Library
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
-# Set access key 
-spark.conf.set(
-    f"fs.azure.account.key.{acc_name}.dfs.core.windows.net",
-    acc_access_token
-)
+# Set parameters
+dbutils.widgets.text('p_file_date','')
+p_file_date = dbutils.widgets.get('p_file_date')
 
 
 # COMMAND ----------
@@ -19,6 +21,17 @@ spark.conf.set(
 results_df = spark.read.parquet(f'{presentation_path}/race_results')
 display(results_df)
 
+
+# COMMAND ----------
+
+#find race_year only on file date
+results_df_1 = results_df.filter(results_df.file_date == p_file_date)
+race_year_list = changeDistinctColumnToList(results_df_1,'race_year')
+
+# COMMAND ----------
+
+#filter race_results base on race_year
+results_df =results_df.filter(col('race_year').isin(race_year_list))
 
 # COMMAND ----------
 
@@ -37,10 +50,8 @@ display(final_df)
 # COMMAND ----------
 
 # Write df 
-output_path =f'{presentation_path}/driver_standings'
-final_df.write.mode('overwrite').parquet(output_path)
+partitionOverwrite(dbname='f1_presentation',tablename='driver_standings',df= final_df ,parttion_column='race_year')
 
 # COMMAND ----------
 
-# display(dbutils.fs.ls(output_path))
-# display(spark.read.parquet(output_path))
+

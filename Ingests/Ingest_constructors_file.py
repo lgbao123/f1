@@ -6,19 +6,14 @@
 # Library
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
-# Set access key 
-spark.conf.set(
-    f"fs.azure.account.key.{acc_name}.dfs.core.windows.net",
-    acc_access_token
-)
-# Path
-input_path = 'abfss://raw@formula12609dl.dfs.core.windows.net/constructors.json'
-output_path ='abfss://processed@formula12609dl.dfs.core.windows.net/constructors'
-
+# Parameter
+dbutils.widgets.text('p_file_date','')
+p_file_date = dbutils.widgets.get('p_file_date')
 
 # COMMAND ----------
 
 #Define schema 
+input_path = f'{raw_path}/{p_file_date}/constructors.json'
 constructors_schema = StructType([
     StructField('constructorId',IntegerType(),False),
     StructField('constructorRef',StringType(),True),
@@ -40,6 +35,7 @@ constructors_df = constructors_df\
                     .withColumnRenamed('constructorId','constructor_id')\
                     .withColumnRenamed('constructorRef','constructor_ref')\
                     .withColumn('ingest_date',current_timestamp())\
+                    .withColumn('file_date',lit(p_file_date))\
                     .drop('url')
 
 
@@ -51,8 +47,13 @@ display(constructors_df)
 # COMMAND ----------
 
 # write to datalake
-constructors_df.write.mode('overwrite').parquet(output_path)
+constructors_df.write.mode('overwrite').format('parquet').saveAsTable('f1_processed.constructors')
 
 # COMMAND ----------
 
-display(dbutils.fs.ls(output_path))
+# MAGIC %sql
+# MAGIC select * from f1_processed.constructors
+
+# COMMAND ----------
+
+

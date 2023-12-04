@@ -6,17 +6,13 @@
 # Library
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
-# Set access key 
-spark.conf.set(
-    f"fs.azure.account.key.{acc_name}.dfs.core.windows.net",
-    acc_access_token
-)
-# Path
-input_path = 'abfss://raw@formula12609dl.dfs.core.windows.net/circuits.csv'
-output_path ='abfss://processed@formula12609dl.dfs.core.windows.net/circuits'
-
+# Parameter
+dbutils.widgets.text('p_file_date','')
+p_file_date = dbutils.widgets.get('p_file_date')
 
 # COMMAND ----------
+
+input_path = f'{raw_path}/{p_file_date}/circuits.csv'
 
 #Define schema 
 circuits_schema = StructType([
@@ -47,7 +43,8 @@ circuits_df = circuits_df\
                     .withColumnRenamed('lng','longtitude')\
                     .withColumnRenamed('alt','altitude ')\
                     .drop('url')\
-                    .withColumn('ingest_date',current_timestamp())
+                    .withColumn('ingest_date',current_timestamp()) \
+                    .withColumn('file_date',lit(p_file_date)) 
 
 
 # COMMAND ----------
@@ -58,8 +55,18 @@ display(circuits_df)
 # COMMAND ----------
 
 # write to datalake
-circuits_df.write.mode('overwrite').parquet(output_path)
+circuits_df.write.mode('overwrite').format('parquet').saveAsTable("f1_processed.circuits");
 
 # COMMAND ----------
 
-display(dbutils.fs.ls(output_path))
+# MAGIC %sql
+# MAGIC select * from f1_processed.circuits ; 
+
+# COMMAND ----------
+
+# MAGIC %sql 
+# MAGIC desc extended f1_processed.circuits ;
+
+# COMMAND ----------
+
+

@@ -6,19 +6,14 @@
 # Library
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
-# Set access key 
-spark.conf.set(
-    f"fs.azure.account.key.{acc_name}.dfs.core.windows.net",
-    acc_access_token
-)
-# Path
-input_path = 'abfss://raw@formula12609dl.dfs.core.windows.net/drivers.json'
-output_path ='abfss://processed@formula12609dl.dfs.core.windows.net/drivers'
-
+# Parameter
+dbutils.widgets.text('p_file_date','')
+p_file_date = dbutils.widgets.get('p_file_date')
 
 # COMMAND ----------
 
 #Define schema 
+input_path = f'{raw_path}/{p_file_date}/drivers.json'
 drivers_schema = StructType([
     StructField('code',StringType(),False),
     StructField('dob',DateType(),True),
@@ -48,6 +43,7 @@ drivers_df = drivers_df\
                     .withColumnRenamed('driverRef','driver_ref')\
                     .withColumn('name',concat('name.forename',lit(' '),'name.surname'))\
                     .withColumn('ingest_date',current_timestamp())\
+                    .withColumn('file_date',lit(p_file_date))\
                     .drop('url')
 
 
@@ -59,8 +55,9 @@ display(drivers_df)
 # COMMAND ----------
 
 # write to datalake
-drivers_df.write.mode('overwrite').parquet(output_path)
+drivers_df.write.mode('overwrite').format('parquet').saveAsTable('f1_processed.drivers')
 
 # COMMAND ----------
 
-display(dbutils.fs.ls(output_path))
+# MAGIC %sql 
+# MAGIC select * from f1_processed.drivers

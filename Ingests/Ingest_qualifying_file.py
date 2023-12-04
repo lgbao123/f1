@@ -6,19 +6,14 @@
 # Library
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
-# Set access key 
-spark.conf.set(
-    f"fs.azure.account.key.{acc_name}.dfs.core.windows.net",
-    acc_access_token
-)
-# Path
-input_path = 'abfss://raw@formula12609dl.dfs.core.windows.net/qualifying'
-output_path ='abfss://processed@formula12609dl.dfs.core.windows.net/qualifying'
-
+# Parameter
+dbutils.widgets.text('p_file_date','')
+p_file_date = dbutils.widgets.get('p_file_date')
 
 # COMMAND ----------
 
 #Define schema 
+input_path = f'{raw_path}/{p_file_date}/qualifying'
 qualifying_schema = StructType([
     StructField('qualifyId',IntegerType(),False),
     StructField('raceId',IntegerType(),True),
@@ -48,7 +43,9 @@ qualifying_df = qualifying_df\
                     .withColumnRenamed('raceId','race_id')\
                     .withColumnRenamed('driverId','driver_id')\
                     .withColumnRenamed('constructorId','constructor_id')\
-                    .withColumn('ingest_date',current_timestamp())
+                    .withColumn('ingest_date',current_timestamp())\
+                    .withColumn('file_date',lit(p_file_date))
+
 
 
 # COMMAND ----------
@@ -59,8 +56,13 @@ display(qualifying_df)
 # COMMAND ----------
 
 # write to datalake
-qualifying_df.write.mode('overwrite').parquet(output_path)
+qualifying_df.write.mode('append').format('parquet').saveAsTable('f1_processed.qualifying')
 
 # COMMAND ----------
 
-display(dbutils.fs.ls(output_path))
+# MAGIC %sql 
+# MAGIC select * from f1_processed.qualifying;
+
+# COMMAND ----------
+
+
