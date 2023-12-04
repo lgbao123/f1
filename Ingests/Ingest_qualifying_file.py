@@ -3,6 +3,10 @@
 
 # COMMAND ----------
 
+# MAGIC %run ../Includes/common_functions
+
+# COMMAND ----------
+
 # Library
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
@@ -56,12 +60,20 @@ display(qualifying_df)
 # COMMAND ----------
 
 # write to datalake
-qualifying_df.write.mode('append').format('parquet').saveAsTable('f1_processed.qualifying')
+path =f'{processed_path}/qualifying'
+condition = 'tgt.qualify_id = up.qualify_id and tgt.race_id = up.race_id'
+partitionOverwrite(df=qualifying_df ,dbname='f1_processed',tablename='qualifying',parttion_column='race_id' ,path=path , condition=condition )
+
+# COMMAND ----------
+
+dbutils.notebook.exit('success')
 
 # COMMAND ----------
 
 # MAGIC %sql 
-# MAGIC select * from f1_processed.qualifying;
+# MAGIC select race_id ,count(1) from f1_processed.qualifying
+# MAGIC group by 1 
+# MAGIC order by 1 desc;
 
 # COMMAND ----------
 

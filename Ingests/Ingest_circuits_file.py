@@ -41,7 +41,7 @@ circuits_df = circuits_df\
                     .withColumnRenamed('circuitRef','circuit_ref')\
                     .withColumnRenamed('lat','latitude')\
                     .withColumnRenamed('lng','longtitude')\
-                    .withColumnRenamed('alt','altitude ')\
+                    .withColumnRenamed('alt','altitude')\
                     .drop('url')\
                     .withColumn('ingest_date',current_timestamp()) \
                     .withColumn('file_date',lit(p_file_date)) 
@@ -55,17 +55,16 @@ display(circuits_df)
 # COMMAND ----------
 
 # write to datalake
-circuits_df.write.mode('overwrite').format('parquet').saveAsTable("f1_processed.circuits");
+circuits_df.write.mode('overwrite').format('delta').saveAsTable("f1_processed.circuits")
+
+# COMMAND ----------
+
+dbutils.notebook.exit('Success')
 
 # COMMAND ----------
 
 # MAGIC %sql
 # MAGIC select * from f1_processed.circuits ; 
-
-# COMMAND ----------
-
-# MAGIC %sql 
-# MAGIC desc extended f1_processed.circuits ;
 
 # COMMAND ----------
 

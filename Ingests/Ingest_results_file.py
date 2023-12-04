@@ -74,4 +74,21 @@ display(results_df)
 # COMMAND ----------
 
 # write to datalake
-partitionOverwrite(dbname='f1_processed',tablename='results',df=results_df,parttion_column='race_id')
+path =f'{processed_path}/results'
+condition = 'tgt.result_id = up.result_id and tgt.race_id = up.race_id'
+partitionOverwrite(df=results_df ,dbname='f1_processed',tablename='results',parttion_column='race_id' ,path=path , condition=condition )
+
+# COMMAND ----------
+
+dbutils.notebook.exit('Success')
+
+# COMMAND ----------
+
+# MAGIC %sql 
+# MAGIC select race_id ,count(1) from f1_processed.results
+# MAGIC group by 1 
+# MAGIC order by 1 desc;
+
+# COMMAND ----------
+
+

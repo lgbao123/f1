@@ -53,8 +53,12 @@ display(races_df)
 # COMMAND ----------
 
 # write to datalake
-output_path = f"{processed_path}/races"
-races_df.write.mode("overwrite").partitionBy("race_year").format('parquet').saveAsTable("f1_processed.races",path = output_path)
+# output_path = f"{processed_path}/races"
+races_df.write.mode("overwrite").partitionBy("race_year").format('delta').saveAsTable("f1_processed.races")
+
+# COMMAND ----------
+
+dbutils.notebook.exit('Success')
 
 # COMMAND ----------
 

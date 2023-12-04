@@ -1,10 +1,19 @@
 # Databricks notebook source
-def partitionOverwrite(dbname,tablename,df,parttion_column):
+from delta.tables import DeltaTable
+
+def partitionOverwrite(df,dbname,tablename,parttion_column,path,condition):
     try :
+        
         if spark._jsparkSession.catalog().tableExists(dbname,tablename):
-            for row in df.select(parttion_column).distinct().collect():
-                spark.sql(f'alter table {dbname}.{tablename} drop if exists partition ({parttion_column} = {row[parttion_column]})')
-        df.write.mode('append').partitionBy(parttion_column).format('parquet').saveAsTable(f'{dbname}.{tablename}')
+            targetDF = DeltaTable.forPath(spark, path)
+            (targetDF.alias('tgt')
+            .merge(df.alias('up'),condition)
+            .whenMatchedUpdateAll()
+            .whenNotMatchedInsertAll()
+            .execute()
+            )
+        else :
+            df.write.mode('overwrite').partitionBy(parttion_column).format('delta').saveAsTable(f'{dbname}.{tablename}')
         print(f'Write success to {dbname}.{tablename}')
     except Exception as e:
         print(e)

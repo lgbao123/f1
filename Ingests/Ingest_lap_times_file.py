@@ -3,6 +3,10 @@
 
 # COMMAND ----------
 
+# MAGIC %run ../Includes/common_functions
+
+# COMMAND ----------
+
 # Library
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
@@ -49,12 +53,25 @@ display(lap_times_df)
 # COMMAND ----------
 
 # write to datalake
-lap_times_df.write.mode('append').format('parquet').saveAsTable('f1_processed.lap_times')
+path =f'{processed_path}/lap_times'
+condition = 'tgt.driver_id = up.driver_id and tgt.race_id = up.race_id and tgt.lap = up.lap'
+partitionOverwrite(df=lap_times_df ,dbname='f1_processed',tablename='lap_times',parttion_column='race_id' ,path=path , condition=condition )
 
 # COMMAND ----------
 
 # MAGIC %sql
 # MAGIC select * from f1_processed.lap_times;
+
+# COMMAND ----------
+
+dbutils.notebook.exit('success')
+
+# COMMAND ----------
+
+# MAGIC %sql 
+# MAGIC select race_id ,count(1) from f1_processed.pitstops
+# MAGIC group by 1 
+# MAGIC order by 1 desc;
 
 # COMMAND ----------
 

@@ -22,6 +22,7 @@ pitstops_schema = StructType([
     StructField('raceId',IntegerType(),False),
     StructField('driverId',IntegerType(),True),
     StructField('stop',IntegerType(),True),
+    StructField('lap',IntegerType(),True),
     StructField('time',StringType(),True),
     StructField('duration',StringType(),True),
     StructField('milliseconds',IntegerType(),True)
@@ -54,9 +55,21 @@ display(pitstops_df)
 # COMMAND ----------
 
 # write to datalake
-pitstops_df.write.mode('append').format('parquet').saveAsTable('f1_processed.pitstops')
+path =f'{processed_path}/pitstops'
+condition = 'tgt.driver_id = up.driver_id and tgt.race_id = up.race_id and tgt.stop = up.stop'
+partitionOverwrite(df=pitstops_df ,dbname='f1_processed',tablename='pitstops',parttion_column='race_id' ,path=path , condition=condition )
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select * from f1_processed.pitstops
+dbutils.notebook.exit('Success')
+
+# COMMAND ----------
+
+# MAGIC %sql 
+# MAGIC select race_id ,count(1) from f1_processed.pitstops
+# MAGIC group by 1 
+# MAGIC order by 1 desc;
+
+# COMMAND ----------
+
+

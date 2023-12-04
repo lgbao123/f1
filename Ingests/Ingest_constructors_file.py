@@ -47,7 +47,11 @@ display(constructors_df)
 # COMMAND ----------
 
 # write to datalake
-constructors_df.write.mode('overwrite').format('parquet').saveAsTable('f1_processed.constructors')
+constructors_df.write.mode('overwrite').format('delta').saveAsTable('f1_processed.constructors')
+
+# COMMAND ----------
+
+dbutils.notebook.exit('Success')
 
 # COMMAND ----------
 

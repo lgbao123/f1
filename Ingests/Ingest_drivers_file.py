@@ -55,7 +55,11 @@ display(drivers_df)
 # COMMAND ----------
 
 # write to datalake
-drivers_df.write.mode('overwrite').format('parquet').saveAsTable('f1_processed.drivers')
+drivers_df.write.mode('overwrite').format('delta').saveAsTable('f1_processed.drivers')
+
+# COMMAND ----------
+
+dbutils.notebook.exit('Success')
 
 # COMMAND ----------
 

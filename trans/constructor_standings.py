@@ -18,7 +18,7 @@ p_file_date = dbutils.widgets.get('p_file_date')
 # COMMAND ----------
 
 #read dataframe 
-results_df = spark.read.parquet(f'{presentation_path}/race_results')
+results_df = spark.read.format('delta').load(f'{presentation_path}/race_results')
 display(results_df)
 
 
@@ -49,5 +49,20 @@ display(final_df)
 
 # COMMAND ----------
 
-# Write df 
-partitionOverwrite(dbname='f1_presentation',tablename='constructor_standings',df= final_df ,parttion_column='race_year')
+# write to datalake
+path =f'{presentation_path}/constructor_standings'
+condition = 'tgt.team = up.team and tgt.race_year = up.race_year '
+partitionOverwrite(df=final_df ,dbname='f1_presentation',tablename='constructor_standings',parttion_column='race_year' ,path=path , condition=condition )
+
+# COMMAND ----------
+
+dbutils.notebook.exit('success')
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from f1_presentation.constructor_standings
+
+# COMMAND ----------
+
+
