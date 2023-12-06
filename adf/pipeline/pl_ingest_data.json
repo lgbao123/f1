@@ -1,0 +1,221 @@
+{
+	"name": "pl_ingest_data",
+	"properties": {
+		"activities": [
+			{
+				"name": "Ingest_circuits_file",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Repos/kreutergarrickus@outlook.com/f1/Ingests/Ingest_circuits_file",
+					"baseParameters": {
+						"p_file_date": {
+							"value": "@formatDateTime(pipeline().parameters.p_end_date,'yyyy-MM-dd')",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_f1_databricks",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Ingest_constructor_file",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Repos/kreutergarrickus@outlook.com/f1/Ingests/Ingest_constructors_file",
+					"baseParameters": {
+						"p_file_date": {
+							"value": "@formatDateTime(pipeline().parameters.p_end_date,'yyyy-MM-dd')",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_f1_databricks",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Ingest_races_file",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Repos/kreutergarrickus@outlook.com/f1/Ingests/Ingest_races_file",
+					"baseParameters": {
+						"p_file_date": {
+							"value": "@formatDateTime(pipeline().parameters.p_end_date,'yyyy-MM-dd')",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_f1_databricks",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Ingest_lap_times_file",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Repos/kreutergarrickus@outlook.com/f1/Ingests/Ingest_lap_times_file",
+					"baseParameters": {
+						"p_file_date": {
+							"value": "@formatDateTime(pipeline().parameters.p_end_date,'yyyy-MM-dd')",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_f1_databricks",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Ingest_drivers_file",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Repos/kreutergarrickus@outlook.com/f1/Ingests/Ingest_drivers_file",
+					"baseParameters": {
+						"p_file_date": {
+							"value": "@formatDateTime(pipeline().parameters.p_end_date,'yyyy-MM-dd')",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_f1_databricks",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Ingest_pits_stop_file",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Repos/kreutergarrickus@outlook.com/f1/Ingests/Ingest_pitstops_file",
+					"baseParameters": {
+						"p_file_date": {
+							"value": "@formatDateTime(pipeline().parameters.p_end_date,'yyyy-MM-dd')",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_f1_databricks",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Ingest_results_file",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Repos/kreutergarrickus@outlook.com/f1/Ingests/Ingest_results_file",
+					"baseParameters": {
+						"p_file_date": {
+							"value": "@formatDateTime(pipeline().parameters.p_end_date,'yyyy-MM-dd')",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_f1_databricks",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Ingest_qualifying_file",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Repos/kreutergarrickus@outlook.com/f1/Ingests/Ingest_qualifying_file",
+					"baseParameters": {
+						"p_file_date": {
+							"value": "@formatDateTime(pipeline().parameters.p_end_date,'yyyy-MM-dd')",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_f1_databricks",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"p_end_date": {
+				"type": "string"
+			}
+		},
+		"annotations": []
+	}
+}
