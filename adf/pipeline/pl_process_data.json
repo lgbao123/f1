@@ -1,0 +1,114 @@
+{
+	"name": "pl_process_data",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get metadata raw folder",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ds_f1_raw",
+						"type": "DatasetReference",
+						"parameters": {
+							"p_end_date": {
+								"value": "@pipeline().parameters.p_end_date",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"exists"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "JsonReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Check folder exits",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Get metadata raw folder",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@activity('Get metadata raw folder').output.exists",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Execute Ingest PL",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "pl_ingest_data",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"p_end_date": {
+										"value": "@pipeline().parameters.p_end_date",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "Execute trans pipeline",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Execute Ingest PL",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "pl_trans_data",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"p_end_date": {
+										"value": "@pipeline().parameters.p_end_date",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"p_end_date": {
+				"type": "string"
+			}
+		},
+		"annotations": []
+	}
+}
