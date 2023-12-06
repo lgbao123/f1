@@ -22,10 +22,6 @@
 		"ls_f1_dl_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://formula12609dl.dfs.core.windows.net/"
-		},
-		"tg_process_data_properties_pipeline_parameters_p_end_date": {
-			"type": "string",
-			"defaultValue": "@trigger().outputs.windowEndTime"
 		}
 	},
 	"variables": {
@@ -63,6 +59,29 @@
 						"type": "SecureString",
 						"value": "[parameters('ls_f1_dl_accountKey')]"
 					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/tg_process_data')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"type": "TumblingWindowTrigger",
+				"typeProperties": {
+					"frequency": "Hour",
+					"interval": 168,
+					"startTime": "2021-03-14T22:00:00Z",
+					"endTime": "2021-04-05T22:00:00Z",
+					"delay": "00:00:00",
+					"maxConcurrency": 1,
+					"retryPolicy": {
+						"intervalInSeconds": 30
+					},
+					"dependsOn": []
 				}
 			},
 			"dependsOn": []
@@ -583,40 +602,6 @@
 				"[concat(variables('factoryId'), '/datasets/ds_f1_raw')]",
 				"[concat(variables('factoryId'), '/pipelines/pl_ingest_data')]",
 				"[concat(variables('factoryId'), '/pipelines/pl_trans_data')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/tg_process_data')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Stopped",
-				"pipeline": {
-					"pipelineReference": {
-						"referenceName": "pl_process_data",
-						"type": "PipelineReference"
-					},
-					"parameters": {
-						"p_end_date": "[parameters('tg_process_data_properties_pipeline_parameters_p_end_date')]"
-					}
-				},
-				"type": "TumblingWindowTrigger",
-				"typeProperties": {
-					"frequency": "Hour",
-					"interval": 168,
-					"startTime": "2021-03-14T22:00:00Z",
-					"endTime": "2021-04-05T22:00:00Z",
-					"delay": "00:00:00",
-					"maxConcurrency": 1,
-					"retryPolicy": {
-						"intervalInSeconds": 30
-					},
-					"dependsOn": []
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/pl_process_data')]"
 			]
 		}
 	]

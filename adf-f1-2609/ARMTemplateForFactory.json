@@ -22,10 +22,6 @@
 		"ls_f1_dl_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://formula12609dl.dfs.core.windows.net/"
-		},
-		"tg_process_data_properties_pipeline_parameters_p_end_date": {
-			"type": "string",
-			"defaultValue": "@trigger().outputs.windowEndTime"
 		}
 	},
 	"variables": {
@@ -592,15 +588,6 @@
 			"properties": {
 				"annotations": [],
 				"runtimeState": "Stopped",
-				"pipeline": {
-					"pipelineReference": {
-						"referenceName": "pl_process_data",
-						"type": "PipelineReference"
-					},
-					"parameters": {
-						"p_end_date": "[parameters('tg_process_data_properties_pipeline_parameters_p_end_date')]"
-					}
-				},
 				"type": "TumblingWindowTrigger",
 				"typeProperties": {
 					"frequency": "Hour",
@@ -615,9 +602,7 @@
 					"dependsOn": []
 				}
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/pl_process_data')]"
-			]
+			"dependsOn": []
 		}
 	]
 }
