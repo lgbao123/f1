@@ -11,13 +11,21 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'accessToken' of 'ls_f1_databricks'"
 		},
+		"ls_f1_dl_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ls_f1_dl'"
+		},
 		"ls_f1_databricks_properties_typeProperties_existingClusterId": {
 			"type": "string",
 			"defaultValue": "1130-065140-jm26hnlg"
 		},
-		"ls_f1_keyVault_properties_typeProperties_baseUrl": {
+		"ls_f1_dl_properties_typeProperties_url": {
 			"type": "string",
-			"defaultValue": "https://f12609-key-vault.vault.azure.net/"
+			"defaultValue": "https://formula12609dl.dfs.core.windows.net/"
+		},
+		"tg_process_data_properties_pipeline_parameters_p_end_date": {
+			"type": "string",
+			"defaultValue": "@trigger().outputs.windowEndTime"
 		}
 	},
 	"variables": {
@@ -254,6 +262,295 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/pl_process_data')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get metadata raw folder",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "ds_f1_raw",
+								"type": "DatasetReference",
+								"parameters": {
+									"p_end_date": {
+										"value": "@pipeline().parameters.p_end_date",
+										"type": "Expression"
+									}
+								}
+							},
+							"fieldList": [
+								"exists"
+							],
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "JsonReadSettings"
+							}
+						}
+					},
+					{
+						"name": "Check folder exits",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "Get metadata raw folder",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@activity('Get metadata raw folder').output.exists",
+								"type": "Expression"
+							},
+							"ifTrueActivities": [
+								{
+									"name": "Execute Ingest PL",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "pl_ingest_data",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"p_end_date": {
+												"value": "@pipeline().parameters.p_end_date",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "Execute trans pipeline",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "Execute Ingest PL",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "pl_trans_data",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"p_end_date": {
+												"value": "@pipeline().parameters.p_end_date",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"p_end_date": {
+						"type": "string"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_f1_raw')]",
+				"[concat(variables('factoryId'), '/pipelines/pl_ingest_data')]",
+				"[concat(variables('factoryId'), '/pipelines/pl_trans_data')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_trans_data')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "transform_result_races",
+						"type": "DatabricksNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Repos/kreutergarrickus@outlook.com/f1/trans/race_results",
+							"baseParameters": {
+								"p_file_date": {
+									"value": "@formatDateTime(pipeline().parameters.p_end_date,'yyyy-MM-dd')",
+									"type": "Expression"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_f1_databricks",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "transform_driver_standings",
+						"type": "DatabricksNotebook",
+						"dependsOn": [
+							{
+								"activity": "transform_result_races",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Repos/kreutergarrickus@outlook.com/f1/trans/driver_standings",
+							"baseParameters": {
+								"p_file_date": {
+									"value": "@formatDateTime(pipeline().parameters.p_end_date,'yyyy-MM-dd')",
+									"type": "Expression"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_f1_databricks",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "transform_constructor",
+						"type": "DatabricksNotebook",
+						"dependsOn": [
+							{
+								"activity": "transform_result_races",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Repos/kreutergarrickus@outlook.com/f1/trans/constructor_standings",
+							"baseParameters": {
+								"p_file_date": {
+									"value": "@formatDateTime(pipeline().parameters.p_end_date,'yyyy-MM-dd')",
+									"type": "Expression"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_f1_databricks",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"p_end_date": {
+						"type": "string"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_f1_databricks')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_f1_raw')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_f1_dl",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"p_end_date": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": {
+							"value": "@formatDateTime(dataset().p_end_date,'yyyy-MM-dd')",
+							"type": "Expression"
+						},
+						"fileSystem": "raw"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"constructorId": {
+							"type": "integer"
+						},
+						"constructorRef": {
+							"type": "string"
+						},
+						"name": {
+							"type": "string"
+						},
+						"nationality": {
+							"type": "string"
+						},
+						"url": {
+							"type": "string"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_f1_dl')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ls_f1_databricks')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -272,17 +569,55 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/ls_f1_keyVault')]",
+			"name": "[concat(parameters('factoryName'), '/ls_f1_dl')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"annotations": [],
-				"type": "AzureKeyVault",
+				"type": "AzureBlobFS",
 				"typeProperties": {
-					"baseUrl": "[parameters('ls_f1_keyVault_properties_typeProperties_baseUrl')]"
+					"url": "[parameters('ls_f1_dl_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('ls_f1_dl_accountKey')]"
+					}
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/tg_process_data')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipeline": {
+					"pipelineReference": {
+						"referenceName": "pl_process_data",
+						"type": "PipelineReference"
+					},
+					"parameters": {
+						"p_end_date": "[parameters('tg_process_data_properties_pipeline_parameters_p_end_date')]"
+					}
+				},
+				"type": "TumblingWindowTrigger",
+				"typeProperties": {
+					"frequency": "Hour",
+					"interval": 168,
+					"startTime": "2021-03-14T22:00:00Z",
+					"endTime": "2021-04-05T22:00:00Z",
+					"delay": "00:00:00",
+					"maxConcurrency": 1,
+					"retryPolicy": {
+						"intervalInSeconds": 30
+					},
+					"dependsOn": []
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/pl_process_data')]"
+			]
 		}
 	]
 }

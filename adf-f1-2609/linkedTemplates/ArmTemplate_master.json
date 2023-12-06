@@ -11,13 +11,21 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'accessToken' of 'ls_f1_databricks'"
 		},
+		"ls_f1_dl_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ls_f1_dl'"
+		},
 		"ls_f1_databricks_properties_typeProperties_existingClusterId": {
 			"type": "string",
 			"defaultValue": "1130-065140-jm26hnlg"
 		},
-		"ls_f1_keyVault_properties_typeProperties_baseUrl": {
+		"ls_f1_dl_properties_typeProperties_url": {
 			"type": "string",
-			"defaultValue": "https://f12609-key-vault.vault.azure.net/"
+			"defaultValue": "https://formula12609dl.dfs.core.windows.net/"
+		},
+		"tg_process_data_properties_pipeline_parameters_p_end_date": {
+			"type": "string",
+			"defaultValue": "@trigger().outputs.windowEndTime"
 		},
 		"containerUri": {
 			"type": "string",
@@ -49,11 +57,17 @@
 					"ls_f1_databricks_accessToken": {
 						"value": "[parameters('ls_f1_databricks_accessToken')]"
 					},
+					"ls_f1_dl_accountKey": {
+						"value": "[parameters('ls_f1_dl_accountKey')]"
+					},
 					"ls_f1_databricks_properties_typeProperties_existingClusterId": {
 						"value": "[parameters('ls_f1_databricks_properties_typeProperties_existingClusterId')]"
 					},
-					"ls_f1_keyVault_properties_typeProperties_baseUrl": {
-						"value": "[parameters('ls_f1_keyVault_properties_typeProperties_baseUrl')]"
+					"ls_f1_dl_properties_typeProperties_url": {
+						"value": "[parameters('ls_f1_dl_properties_typeProperties_url')]"
+					},
+					"tg_process_data_properties_pipeline_parameters_p_end_date": {
+						"value": "[parameters('tg_process_data_properties_pipeline_parameters_p_end_date')]"
 					}
 				}
 			},
