@@ -16,6 +16,9 @@
 		},
 		"ls_f1_dl_properties_typeProperties_url": {
 			"value": "https://formula12609dl.dfs.core.windows.net/"
+		},
+		"trg_processed_data_properties_pipeline_parameters_p_end_date": {
+			"value": "@trigger().outputs.windowEndTime"
 		}
 	}
 }
