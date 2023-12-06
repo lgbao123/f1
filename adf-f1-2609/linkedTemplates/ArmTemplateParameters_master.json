@@ -1,0 +1,24 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "adf-f1-2609"
+		},
+		"ls_f1_databricks_accessToken": {
+			"value": ""
+		},
+		"ls_f1_databricks_properties_typeProperties_existingClusterId": {
+			"value": "1130-065140-jm26hnlg"
+		},
+		"ls_f1_keyVault_properties_typeProperties_baseUrl": {
+			"value": "https://f12609-key-vault.vault.azure.net/"
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}
