@@ -3,6 +3,15 @@
 	"properties": {
 		"annotations": [],
 		"runtimeState": "Stopped",
+		"pipeline": {
+			"pipelineReference": {
+				"referenceName": "pl_process_data",
+				"type": "PipelineReference"
+			},
+			"parameters": {
+				"p_end_date": "@trigger().outputs.windowEndTime"
+			}
+		},
 		"type": "TumblingWindowTrigger",
 		"typeProperties": {
 			"frequency": "Hour",
@@ -10,7 +19,7 @@
 			"startTime": "2021-03-14T22:00:00Z",
 			"endTime": "2021-04-05T22:00:00Z",
 			"delay": "00:00:00",
-			"maxConcurrency": 50,
+			"maxConcurrency": 1,
 			"retryPolicy": {
 				"intervalInSeconds": 30
 			},
