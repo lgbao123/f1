@@ -1,0 +1,48 @@
+{
+	"name": "ds_presentation_driver_standings",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_f1_dl",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "presentation"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "driver_standings",
+				"fileSystem": "presentation"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "driver_name",
+				"type": "UTF8"
+			},
+			{
+				"name": "driver_nationality",
+				"type": "UTF8"
+			},
+			{
+				"name": "team",
+				"type": "UTF8"
+			},
+			{
+				"name": "total_points",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "wins",
+				"type": "INT64"
+			},
+			{
+				"name": "race_year",
+				"type": "UTF8"
+			}
+		]
+	}
+}

@@ -1,0 +1,42 @@
+{
+	"name": "ds_sql_driver_standings",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "sl_sql_f1",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "sql"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "driver_name",
+				"type": "varchar"
+			},
+			{
+				"name": "driver_nationality",
+				"type": "varchar"
+			},
+			{
+				"name": "team",
+				"type": "varchar"
+			},
+			{
+				"name": "total_points",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "wins",
+				"type": "smallint",
+				"precision": 5
+			}
+		],
+		"typeProperties": {
+			"schema": "f1_presentation",
+			"table": "driver_standings"
+		}
+	}
+}

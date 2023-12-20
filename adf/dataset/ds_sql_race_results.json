@@ -1,0 +1,90 @@
+{
+	"name": "ds_sql_race_results",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "sl_sql_f1",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "sql"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "race_name",
+				"type": "varchar"
+			},
+			{
+				"name": "race_date",
+				"type": "date"
+			},
+			{
+				"name": "location",
+				"type": "varchar"
+			},
+			{
+				"name": "driver_id",
+				"type": "smallint",
+				"precision": 5
+			},
+			{
+				"name": "driver_name",
+				"type": "varchar"
+			},
+			{
+				"name": "driver_number",
+				"type": "smallint",
+				"precision": 5
+			},
+			{
+				"name": "driver_nationality",
+				"type": "varchar"
+			},
+			{
+				"name": "team",
+				"type": "varchar"
+			},
+			{
+				"name": "grid",
+				"type": "smallint",
+				"precision": 5
+			},
+			{
+				"name": "fastest_lap",
+				"type": "varchar"
+			},
+			{
+				"name": "time",
+				"type": "varchar"
+			},
+			{
+				"name": "points",
+				"type": "smallint",
+				"precision": 5
+			},
+			{
+				"name": "position",
+				"type": "smallint",
+				"precision": 5
+			},
+			{
+				"name": "race_id",
+				"type": "smallint",
+				"precision": 5
+			},
+			{
+				"name": "file_date",
+				"type": "date"
+			},
+			{
+				"name": "created_date",
+				"type": "date"
+			}
+		],
+		"typeProperties": {
+			"schema": "f1_presentation",
+			"table": "race_results"
+		}
+	}
+}

@@ -1,0 +1,23 @@
+{
+	"name": "ds_presentation_constructor_standings",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_f1_dl",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "presentation"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "constructor_standings",
+				"fileSystem": "presentation"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}
