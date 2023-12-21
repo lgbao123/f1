@@ -44,14 +44,14 @@ final_df = results_df.groupBy('race_year','driver_name','driver_nationality','te
                              
                              
 
-display(final_df)
+
 
 
 # COMMAND ----------
 
 # write to datalake
 path =f'{presentation_path}/driver_standings'
-condition = 'tgt.driver_name = up.driver_name and tgt.team = up.team and tgt.team = up.team and tgt.race_year = up.race_year '
+condition = 'tgt.driver_name = up.driver_name and  tgt.team = up.team and tgt.race_year = up.race_year '
 partitionOverwrite(df=final_df ,dbname='f1_presentation',tablename='driver_standings',parttion_column='race_year' ,path=path , condition=condition )
 
 # COMMAND ----------
@@ -62,6 +62,10 @@ dbutils.notebook.exit('success')
 
 # MAGIC %sql
 # MAGIC select * from f1_presentation.driver_standings
+
+# COMMAND ----------
+
+display(final_df)
 
 # COMMAND ----------
 

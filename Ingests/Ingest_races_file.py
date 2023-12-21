@@ -38,7 +38,7 @@ races_df = races_df\
                     .withColumnRenamed('raceId','race_id')\
                     .withColumnRenamed('circuitId','circuit_id')\
                     .withColumnRenamed('year','race_year')\
-                    .withColumn('race_timestamp',concat(col('date'),lit(' '),col('time')))\
+                    .withColumnRenamed('date','race_date')\
                     .withColumn('ingest_date',current_timestamp())\
                     .withColumn('file_date',lit(p_file_date)) \
                     .drop('url','date','time')

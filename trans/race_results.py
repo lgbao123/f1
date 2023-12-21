@@ -27,14 +27,17 @@ circuits_df = spark.read.format('delta').load(f'{processed_path}/circuits')
 
 # COMMAND ----------
 
+from pyspark.sql.window import Window
 results_df_filtered = results_df.filter(results_df['file_date']== p_file_date)
+windowSpec  = Window.partitionBy('constructor_id','race_id','driver_id').orderBy(col('points').desc())
+results_df_filtered = results_df_filtered.withColumn('dup',row_number().over(windowSpec)).filter('dup =1')
 # display(results_df_filtered)
 
 # COMMAND ----------
 
 # transform 
 races_join_df = races_df.join(circuits_df,[races_df.circuit_id == circuits_df.circuit_id]) \
-                        .select(races_df['race_id'],races_df['name'].alias('race_name'), col('race_timestamp').alias('race_date'), 'race_year' ,'location')
+                        .select(races_df['race_id'],races_df['name'].alias('race_name'), 'race_date', 'race_year' ,'location')
 races_join_df.show(5)
 
 
@@ -47,10 +50,6 @@ final_df = results_df_filtered.join(races_join_df , [results_df_filtered.race_id
                     .withColumn('created_date',current_timestamp()) \
                     .orderBy(col('race_year').desc(),col('points').desc())
 
-
-# COMMAND ----------
-
-display(final_df)
 
 # COMMAND ----------
 
@@ -69,6 +68,12 @@ dbutils.notebook.exit('success')
 # MAGIC select race_id , count(1) from f1_presentation.race_results
 # MAGIC group by 1 
 # MAGIC order by 1 desc;
+# MAGIC
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from f1_presentation.race_results
 # MAGIC
 
 # COMMAND ----------

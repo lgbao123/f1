@@ -1,5 +1,5 @@
 # Databricks notebook source
-p_file_date = '2021-03-28'
+p_file_date = '2021-03-21'
 p1 =dbutils.notebook.run('Ingest_circuits_file',0,{'p_file_date':p_file_date})
 p2 =dbutils.notebook.run('Ingest_races_file',0,{'p_file_date':p_file_date})
 p3 =dbutils.notebook.run('Ingest_constructors_file',0,{'p_file_date':p_file_date})
@@ -12,7 +12,7 @@ p8 =dbutils.notebook.run('Ingest_qualifying_file',0,{'p_file_date':p_file_date})
 
 # COMMAND ----------
 
-p_file_date = '2021-03-28'
+p_file_date = '2021-03-21'
 p1 =dbutils.notebook.run('../trans/race_results',0,{'p_file_date':p_file_date})
 p2 =dbutils.notebook.run('../trans/driver_standings',0,{'p_file_date':p_file_date})
 p3 =dbutils.notebook.run('../trans/race_results',0,{'p_file_date':p_file_date})
