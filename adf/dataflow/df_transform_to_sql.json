@@ -1,0 +1,171 @@
+{
+	"name": "df_transform_to_sql",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "ls_f1_dl",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sourceRaceResults"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_f1_dl",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sourceDriverStandings"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_f1_dl",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sourceConstructorStandings"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_sql_driver_standings",
+						"type": "DatasetReference"
+					},
+					"name": "sinkSQLDriver"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_sql_constructor_standings",
+						"type": "DatasetReference"
+					},
+					"name": "sinkSqlConstructor"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_sql_race_results",
+						"type": "DatasetReference"
+					},
+					"name": "sinkSqlResult"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          race_year as integer,",
+				"          race_name as string,",
+				"          race_date as date,",
+				"          location as string,",
+				"          driver_id as integer,",
+				"          driver_name as string,",
+				"          driver_number as integer,",
+				"          driver_nationality as string,",
+				"          team as string,",
+				"          grid as integer,",
+				"          fastest_lap as integer,",
+				"          time as string,",
+				"          points as double,",
+				"          position as integer,",
+				"          race_id as integer,",
+				"          file_date as string,",
+				"          created_date as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'presentation',",
+				"     folderPath: 'race_results') ~> sourceRaceResults",
+				"source(output(",
+				"          race_year as integer,",
+				"          driver_name as string,",
+				"          driver_nationality as string,",
+				"          team as string,",
+				"          total_points as double,",
+				"          wins as long",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'presentation',",
+				"     folderPath: 'driver_standings') ~> sourceDriverStandings",
+				"source(output(",
+				"          race_year as integer,",
+				"          team as string,",
+				"          total_points as double,",
+				"          wins as long",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'presentation',",
+				"     folderPath: 'constructor_standings') ~> sourceConstructorStandings",
+				"sourceDriverStandings sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          driver_name as string,",
+				"          driver_nationality as string,",
+				"          team as string,",
+				"          total_points as double,",
+				"          wins as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sinkSQLDriver",
+				"sourceConstructorStandings sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          team as string,",
+				"          total_points as double,",
+				"          wins as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sinkSqlConstructor",
+				"sourceRaceResults sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          race_name as string,",
+				"          race_date as date,",
+				"          location as string,",
+				"          driver_id as integer,",
+				"          driver_name as string,",
+				"          driver_number as integer,",
+				"          driver_nationality as string,",
+				"          team as string,",
+				"          grid as integer,",
+				"          fastest_lap as string,",
+				"          time as string,",
+				"          points as integer,",
+				"          position as integer,",
+				"          race_id as integer,",
+				"          file_date as date,",
+				"          created_date as date",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sinkSqlResult"
+			]
+		}
+	}
+}
