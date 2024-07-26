@@ -1,0 +1,57 @@
+{
+	"name": "sqlserver2609_ds",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "sqlserver2609_ls",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Source_System_Name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Source_Object_Type",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Source_Object_Name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Target_Object_Name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "File_Format",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Load_Type",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Base_Url",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Relative_Url",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Incremetal_Url",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Is_First_Run",
+				"type": "bit"
+			}
+		],
+		"typeProperties": {
+			"schema": "f1",
+			"table": "ControlTable"
+		}
+	}
+}

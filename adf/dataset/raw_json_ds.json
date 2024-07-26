@@ -1,0 +1,30 @@
+{
+	"name": "raw_json_ds",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "bao2609_adlsg2_ls",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"source_system_name": {
+				"type": "string"
+			},
+			"source_object_name": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@concat('raw',\n    '/',dataset().source_system_name,\n    '/',dataset().source_object_name,\n    '/year=',utcNow('yyyy'),\n    '/month=',utcNow('MM'),\n    '/day=',utcNow('dd')\n)",
+					"type": "Expression"
+				},
+				"fileSystem": "fo1"
+			}
+		},
+		"schema": {}
+	}
+}

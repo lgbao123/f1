@@ -21,16 +21,17 @@
 						"requestInterval": "00.00:00:00.010",
 						"requestMethod": "GET",
 						"paginationRules": {
-							"supportRFC5988": "true"
+							"QueryParameters.{offset}": "RANGE:0:10:2"
 						}
 					},
 					"sink": {
-						"type": "ParquetSink",
+						"type": "JsonSink",
 						"storeSettings": {
-							"type": "AzureBlobFSWriteSettings"
+							"type": "AzureBlobFSWriteSettings",
+							"copyBehavior": "PreserveHierarchy"
 						},
 						"formatSettings": {
-							"type": "ParquetWriteSettings"
+							"type": "JsonWriteSettings"
 						}
 					},
 					"enableStaging": false
@@ -40,21 +41,47 @@
 						"referenceName": "rest_api_source_ds",
 						"type": "DatasetReference",
 						"parameters": {
-							"relative_url": "/api"
+							"relative_url": "/api/f1/results.json?limit=2&offset={offset}"
 						}
 					}
 				],
 				"outputs": [
 					{
-						"referenceName": "raw_ds",
+						"referenceName": "raw_json_ds",
 						"type": "DatasetReference",
 						"parameters": {
-							"source_system_name": "egastAPI",
-							"source_object_name": "test",
-							"target_object_name": "test"
+							"source_system_name": "Ergast",
+							"source_object_name": "Result"
 						}
 					}
 				]
+			},
+			{
+				"name": "Get control table",
+				"type": "Lookup",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "sqlserver2609_ds",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
 			}
 		],
 		"folder": {
