@@ -9,7 +9,7 @@
 		"annotations": [],
 		"type": "RestService",
 		"typeProperties": {
-			"url": "@{linkedService().base_url}",
+			"url": "www.f.com",
 			"enableServerCertificateValidation": true,
 			"authenticationType": "Anonymous"
 		}
