@@ -16,17 +16,11 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "ds_f1_raw",
-						"type": "DatasetReference",
-						"parameters": {
-							"p_end_date": {
-								"value": "@pipeline().parameters.p_end_date",
-								"type": "Expression"
-							}
-						}
+						"referenceName": "raw_json_ds",
+						"type": "DatasetReference"
 					},
 					"fieldList": [
-						"exists"
+						"childItems"
 					],
 					"storeSettings": {
 						"type": "AzureBlobFSReadSettings",
@@ -59,6 +53,9 @@
 							"name": "Execute Ingest PL",
 							"type": "ExecutePipeline",
 							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
 							"userProperties": [],
 							"typeProperties": {
 								"pipeline": {
@@ -85,6 +82,9 @@
 									]
 								}
 							],
+							"policy": {
+								"secureInput": false
+							},
 							"userProperties": [],
 							"typeProperties": {
 								"pipeline": {
