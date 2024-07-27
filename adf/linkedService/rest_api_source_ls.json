@@ -1,13 +1,18 @@
 {
 	"name": "rest_api_source_ls",
-	"type": "Microsoft.DataFactory/factories/linkedservices",
 	"properties": {
+		"parameters": {
+			"base_url": {
+				"type": "string"
+			}
+		},
 		"annotations": [],
 		"type": "RestService",
 		"typeProperties": {
-			"url": "http://ergast.com",
+			"url": "@{linkedService().base_url}",
 			"enableServerCertificateValidation": true,
 			"authenticationType": "Anonymous"
 		}
-	}
+	},
+	"type": "Microsoft.DataFactory/factories/linkedservices"
 }
