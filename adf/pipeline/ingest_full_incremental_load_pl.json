@@ -3,76 +3,122 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Copy data from api to adlg2",
-				"type": "Copy",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
+				"name": "ForEachTable",
+				"type": "ForEach",
 				"dependsOn": [
 					{
-						"activity": "Get total row",
+						"activity": "Get control table",
 						"dependencyConditions": [
 							"Succeeded"
 						]
 					}
 				],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
 				"userProperties": [],
 				"typeProperties": {
-					"source": {
-						"type": "RestSource",
-						"httpRequestTimeout": "00:01:40",
-						"requestInterval": "00.00:00:00.010",
-						"requestMethod": "GET",
-						"paginationRules": {
-							"QueryParameters.{offset}": {
-								"value": "@concat(\n'RANGE:0:',\nactivity('Get total row').output.MRData.total,\n':1000')",
-								"type": "Expression"
+					"items": {
+						"value": "@activity('Get control table').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy data from api to datalake",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Get total",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "RestSource",
+									"httpRequestTimeout": "00:01:40",
+									"requestInterval": "00.00:00:00.010",
+									"requestMethod": "GET",
+									"paginationRules": {
+										"QueryParameters.{offset}": {
+											"value": "@concat(\n'RANGE:0:',\nactivity('Get total').output.MRData.total,\n':1000')",
+											"type": "Expression"
+										}
+									}
+								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings",
+										"copyBehavior": "PreserveHierarchy"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "rest_api_source_ds",
+									"type": "DatasetReference",
+									"parameters": {
+										"relative_url": {
+											"value": "@if( or(equals(toLower(item()['Load_Type']),'full'),\n        equals(item()['Is_First_Run'],'True'))\n    ,concat(\n        item()['Relative_Url'],\n        '?limit=1000&offset={offset}'\n    )\n    ,concat(\n        item()['Incremetal_Url'],\n        '?limit=1000&offset={offset}'\n    )\n)",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "raw_json_ds",
+									"type": "DatasetReference",
+									"parameters": {
+										"source_system_name": {
+											"value": "@item()['Source_System_Name']",
+											"type": "Expression"
+										},
+										"source_object_name": {
+											"value": "@item()['Source_Object_Name']",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Get total",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "GET",
+								"url": {
+									"value": "@concat(\n    item()['Base_Url'],\n    item()['Relative_Url']\n)",
+									"type": "Expression"
+								}
 							}
 						}
-					},
-					"sink": {
-						"type": "JsonSink",
-						"storeSettings": {
-							"type": "AzureBlobFSWriteSettings",
-							"copyBehavior": "PreserveHierarchy"
-						},
-						"formatSettings": {
-							"type": "JsonWriteSettings"
-						}
-					},
-					"enableStaging": false
-				},
-				"inputs": [
-					{
-						"referenceName": "rest_api_source_ds",
-						"type": "DatasetReference",
-						"parameters": {
-							"relative_url": "/api/f1/circuits.json?limit=1000&offset={offset}"
-						}
-					}
-				],
-				"outputs": [
-					{
-						"referenceName": "raw_json_ds",
-						"type": "DatasetReference",
-						"parameters": {
-							"source_system_name": "Ergast",
-							"source_object_name": "Result"
-						}
-					}
-				]
+					]
+				}
 			},
 			{
 				"name": "Get control table",
 				"type": "Lookup",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
@@ -94,64 +140,10 @@
 					},
 					"firstRowOnly": false
 				}
-			},
-			{
-				"name": "Get total row",
-				"type": "WebActivity",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [
-					{
-						"name": "test"
-					}
-				],
-				"typeProperties": {
-					"method": "GET"
-				}
-			},
-			{
-				"name": "ForEach1",
-				"type": "ForEach",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
-				"dependsOn": [
-					{
-						"activity": "Get control table",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"items": {
-						"value": "@activity('Get control table').output",
-						"type": "Expression"
-					},
-					"activities": [
-						{
-							"name": "Wait1",
-							"type": "Wait",
-							"dependsOn": [],
-							"userProperties": [],
-							"typeProperties": {
-								"waitTimeInSeconds": 1
-							}
-						}
-					]
-				}
 			}
 		],
 		"variables": {
-			"base_url": {
+			"row": {
 				"type": "String"
 			}
 		},
