@@ -1,15 +1,10 @@
 {
 	"name": "rest_api_source_ls",
 	"properties": {
-		"parameters": {
-			"base_url": {
-				"type": "string"
-			}
-		},
 		"annotations": [],
 		"type": "RestService",
 		"typeProperties": {
-			"url": "@{linkedService().base_url}",
+			"url": "https://ergast.com",
 			"enableServerCertificateValidation": true,
 			"authenticationType": "Anonymous"
 		}
