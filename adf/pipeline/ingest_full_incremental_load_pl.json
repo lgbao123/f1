@@ -62,7 +62,9 @@
 										"type": "JsonWriteSettings"
 									}
 								},
-								"enableStaging": false
+								"enableStaging": false,
+								"parallelCopies": 2,
+								"dataIntegrationUnits": 4
 							},
 							"inputs": [
 								{
@@ -70,7 +72,7 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"relative_url": {
-											"value": "@if( or(equals(toLower(item()['Load_Type']),'full'),\n        equals(item()['Is_First_Run'],'True'))\n    ,concat(\n        item()['Relative_Url'],\n        '?limit=1000&offset={offset}'\n    )\n    ,concat(\n        item()['Incremetal_Url'],\n        '?limit=1000&offset={offset}'\n    )\n)",
+											"value": "@if( or(equals(toLower(item()['Load_Type']),'full'),\n        equals(item()['Is_First_Run'],true))\n    ,concat(\n        item()['Relative_Url'],\n        '?limit=1000&offset={offset}'\n    )\n    ,concat(\n        item()['Incremetal_Url'],\n        '?limit=1000&offset={offset}'\n    )\n)",
 											"type": "Expression"
 										}
 									}
@@ -87,6 +89,10 @@
 										},
 										"source_object_name": {
 											"value": "@item()['Source_Object_Name']",
+											"type": "Expression"
+										},
+										"target_object_name": {
+											"value": "@item()['Target_Object_Name']",
 											"type": "Expression"
 										}
 									}
@@ -108,7 +114,7 @@
 							"typeProperties": {
 								"method": "GET",
 								"url": {
-									"value": "@concat(\n    item()['Base_Url'],\n    item()['Relative_Url']\n)",
+									"value": "@if( or(equals(toLower(item()['Load_Type']),'full'),\n        equals(item()['Is_First_Run'],true))\n    ,concat(\n        item()['Base_Url'],\n        item()['Relative_Url']\n    )\n    ,concat(\n        item()['Base_Url'],\n        item()['Incremetal_Url']\n    )\n)",
 									"type": "Expression"
 								}
 							}
@@ -136,7 +142,7 @@
 								"storedProcedureName": "[f1].[sp_UpdateIsFirstRun]",
 								"storedProcedureParameters": {
 									"Is_First_Run": {
-										"value": "False",
+										"value": "false",
 										"type": "Boolean"
 									},
 									"Source_Object_Name": {

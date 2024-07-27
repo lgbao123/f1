@@ -11,6 +11,9 @@
 			},
 			"source_object_name": {
 				"type": "string"
+			},
+			"target_object_name": {
+				"type": "string"
 			}
 		},
 		"annotations": [],
@@ -18,6 +21,10 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@concat(dataset().target_object_name,'.json')",
+					"type": "Expression"
+				},
 				"folderPath": {
 					"value": "@concat('raw',\n    '/',dataset().source_system_name,\n    '/',dataset().source_object_name,\n    '/year=',utcNow('yyyy'),\n    '/month=',utcNow('MM'),\n    '/day=',utcNow('dd')\n)",
 					"type": "Expression"
