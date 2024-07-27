@@ -112,6 +112,46 @@
 									"type": "Expression"
 								}
 							}
+						},
+						{
+							"name": "Update is first run field",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Copy data from api to datalake",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[f1].[sp_UpdateIsFirstRun]",
+								"storedProcedureParameters": {
+									"Is_First_Run": {
+										"value": "False",
+										"type": "Boolean"
+									},
+									"Source_Object_Name": {
+										"value": {
+											"value": "@item()['Source_Object_Name']",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "sqlserver2609_ls",
+								"type": "LinkedServiceReference"
+							}
 						}
 					]
 				}
