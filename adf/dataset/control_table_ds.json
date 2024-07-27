@@ -1,5 +1,5 @@
 {
-	"name": "sqlserver2609_ds",
+	"name": "control_table_ds",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "sqlserver2609_ls",

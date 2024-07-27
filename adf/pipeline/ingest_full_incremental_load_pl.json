@@ -5,7 +5,16 @@
 			{
 				"name": "Copy data from api to adlg2",
 				"type": "Copy",
-				"dependsOn": [],
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Get total row",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
@@ -21,7 +30,10 @@
 						"requestInterval": "00.00:00:00.010",
 						"requestMethod": "GET",
 						"paginationRules": {
-							"QueryParameters.{offset}": "RANGE:0:10:2"
+							"QueryParameters.{offset}": {
+								"value": "@concat(\n'RANGE:0:',\nactivity('Get total row').output.MRData.total,\n':1000')",
+								"type": "Expression"
+							}
 						}
 					},
 					"sink": {
@@ -41,7 +53,7 @@
 						"referenceName": "rest_api_source_ds",
 						"type": "DatasetReference",
 						"parameters": {
-							"relative_url": "/api/f1/results.json?limit=2&offset={offset}"
+							"relative_url": "/api/f1/circuits.json?limit=1000&offset={offset}"
 						}
 					}
 				],
@@ -77,13 +89,72 @@
 						"partitionOption": "None"
 					},
 					"dataset": {
-						"referenceName": "sqlserver2609_ds",
+						"referenceName": "control_table_ds",
 						"type": "DatasetReference"
 					},
 					"firstRowOnly": false
 				}
+			},
+			{
+				"name": "Get total row",
+				"type": "WebActivity",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [
+					{
+						"name": "test"
+					}
+				],
+				"typeProperties": {
+					"method": "GET"
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Get control table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get control table').output",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Wait1",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						}
+					]
+				}
 			}
 		],
+		"variables": {
+			"base_url": {
+				"type": "String"
+			}
+		},
 		"folder": {
 			"name": "ingest"
 		},
