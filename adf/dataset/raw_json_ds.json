@@ -16,6 +16,9 @@
 				"type": "string"
 			}
 		},
+		"folder": {
+			"name": "raw"
+		},
 		"annotations": [],
 		"type": "Json",
 		"typeProperties": {
