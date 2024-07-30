@@ -4,12 +4,7 @@
 		"annotations": [],
 		"type": "AzureSqlDatabase",
 		"typeProperties": {
-			"server": "sqlserver2609.database.windows.net",
-			"database": "db2609",
-			"encrypt": "mandatory",
-			"trustServerCertificate": false,
-			"authenticationType": "SQL",
-			"userName": "giabao",
+			"connectionString": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=sqlserver2609.database.windows.net;Initial Catalog=db2609;User ID=giabao",
 			"password": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
