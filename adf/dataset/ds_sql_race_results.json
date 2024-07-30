@@ -2,7 +2,7 @@
 	"name": "ds_sql_race_results",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "sl_sql_f1",
+			"referenceName": "sqlserver2609_ls",
 			"type": "LinkedServiceReference"
 		},
 		"folder": {
