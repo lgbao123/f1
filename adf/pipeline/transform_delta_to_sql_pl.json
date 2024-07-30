@@ -1,0 +1,35 @@
+{
+	"name": "transform_delta_to_sql_pl",
+	"properties": {
+		"activities": [
+			{
+				"name": "Load delta table to sql table",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "delta_transform_to_sql",
+						"type": "DataFlowReference"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"folder": {
+			"name": "transform"
+		},
+		"annotations": []
+	}
+}
