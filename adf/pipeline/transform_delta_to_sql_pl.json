@@ -3,8 +3,8 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Load delta table to sql table",
-				"type": "ExecuteDataFlow",
+				"name": "Move data to sql server",
+				"type": "DatabricksNotebook",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
@@ -15,15 +15,11 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"dataflow": {
-						"referenceName": "delta_transform_to_sql",
-						"type": "DataFlowReference"
-					},
-					"compute": {
-						"coreCount": 8,
-						"computeType": "General"
-					},
-					"traceLevel": "Fine"
+					"notebookPath": "/Users/devesh.21820079@viit.ac.in/f1/trans/move_data_to_sql_server"
+				},
+				"linkedServiceName": {
+					"referenceName": "AzureDatabricks_ls",
+					"type": "LinkedServiceReference"
 				}
 			}
 		],
