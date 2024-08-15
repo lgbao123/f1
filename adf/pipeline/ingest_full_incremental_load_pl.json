@@ -1,0 +1,203 @@
+{
+	"name": "ingest_full_incremental_load_pl",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEachTable",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get control table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get control table').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy data from api to datalake",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Get total",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "RestSource",
+									"httpRequestTimeout": "00:01:40",
+									"requestInterval": "00.00:00:00.010",
+									"requestMethod": "GET",
+									"paginationRules": {
+										"QueryParameters.{offset}": {
+											"value": "@concat(\n'RANGE:0:',\nactivity('Get total').output.MRData.total,\n':1000')",
+											"type": "Expression"
+										}
+									}
+								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings",
+										"copyBehavior": "PreserveHierarchy"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"parallelCopies": 2,
+								"dataIntegrationUnits": 4
+							},
+							"inputs": [
+								{
+									"referenceName": "rest_api_source_ds",
+									"type": "DatasetReference",
+									"parameters": {
+										"relative_url": {
+											"value": "@if( or(equals(toLower(item()['Load_Type']),'full'),\n        equals(item()['Is_First_Run'],true))\n    ,concat(\n        item()['Relative_Url'],\n        '?limit=1000&offset={offset}'\n    )\n    ,concat(\n        item()['Incremetal_Url'],\n        '?limit=1000&offset={offset}'\n    )\n)",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "raw_json_ds",
+									"type": "DatasetReference",
+									"parameters": {
+										"source_system_name": {
+											"value": "@item()['Source_System_Name']",
+											"type": "Expression"
+										},
+										"source_object_name": {
+											"value": "@item()['Source_Object_Name']",
+											"type": "Expression"
+										},
+										"target_object_name": {
+											"value": "@item()['Target_Object_Name']",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Get total",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "GET",
+								"url": {
+									"value": "@if( or(equals(toLower(item()['Load_Type']),'full'),\n        equals(item()['Is_First_Run'],true))\n    ,concat(\n        item()['Base_Url'],\n        item()['Relative_Url']\n    )\n    ,concat(\n        item()['Base_Url'],\n        item()['Incremetal_Url']\n    )\n)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Update is first run field",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Copy data from api to datalake",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[f1].[sp_UpdateIsFirstRun]",
+								"storedProcedureParameters": {
+									"Is_First_Run": {
+										"value": "false",
+										"type": "Boolean"
+									},
+									"Source_Object_Name": {
+										"value": {
+											"value": "@item()['Source_Object_Name']",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "sqlserver2609_ls",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Get control table",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "control_table_ds",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			}
+		],
+		"variables": {
+			"row": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "ingest"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-07-24T15:51:46Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

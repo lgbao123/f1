@@ -1,0 +1,10 @@
+{
+	"name": "bao2609_adlsg2_ls",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://2609adlg2.dfs.core.windows.net/"
+		}
+	}
+}
