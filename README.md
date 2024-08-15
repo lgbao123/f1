@@ -28,6 +28,6 @@ This project aims to build a dashboard for F1 racing data visualization, providi
 
 ## 4. Visualize 
 
-The dashboard provides insights into various aspects of F1 racing, including race results, driver performance, driver standings, and more. 
+The dashboard provides insights into various aspects of F1 racing, including race results, driver performance, driver standings, and more... 
 
 <img src = ./img/f1_dash.png>
