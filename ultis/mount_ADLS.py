@@ -32,4 +32,3 @@ display(dbutils.fs.mounts())
 
 # COMMAND ----------
 
-

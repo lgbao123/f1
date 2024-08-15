@@ -1,5 +1,6 @@
 # Databricks notebook source
 # MAGIC %run ../Includes/configuration
+# MAGIC
 
 # COMMAND ----------
 
@@ -10,10 +11,21 @@
 # Library
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
-# Set parameters
+from pyspark.sql.window import Window
+from datetime import datetime
+# Parameter
 dbutils.widgets.text('p_file_date','')
 p_file_date = dbutils.widgets.get('p_file_date')
+dbutils.widgets.text('p_file_date','')
+p_file_date = dbutils.widgets.get('p_file_date')
+year = datetime.strptime(p_file_date,'%Y-%m-%d').strftime('%Y')
+month = datetime.strptime(p_file_date,'%Y-%m-%d').strftime('%m')
+day = datetime.strptime(p_file_date,'%Y-%m-%d').strftime('%d')
 
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC #### Read data 
 
 # COMMAND ----------
 
@@ -27,36 +39,68 @@ circuits_df = spark.read.format('delta').load(f'{processed_path}/circuits')
 
 # COMMAND ----------
 
-from pyspark.sql.window import Window
-results_df_filtered = results_df.filter(results_df['file_date']== p_file_date)
-windowSpec  = Window.partitionBy('constructor_id','race_id','driver_id').orderBy(col('points').desc())
-results_df_filtered = results_df_filtered.withColumn('dup',row_number().over(windowSpec)).filter('dup =1')
-# display(results_df_filtered)
+# MAGIC %md
+# MAGIC ##### Get new result_race from ingestion date 
+
+# COMMAND ----------
+
+results_df_filtered = results_df.filter(results_df['ingestion_date']== p_file_date)
+display(results_df_filtered)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC #### Join race table with circuit table
 
 # COMMAND ----------
 
 # transform 
 races_join_df = races_df.join(circuits_df,[races_df.circuit_id == circuits_df.circuit_id]) \
-                        .select(races_df['race_id'],races_df['name'].alias('race_name'), 'race_date', 'race_year' ,'location')
+                        .select(races_df['race_id'],'race_name', 'race_date', 'season','round' ,'circuit_name','circuit_country','circuit_locality')
 races_join_df.show(5)
 
 
 # COMMAND ----------
 
-final_df = results_df_filtered.join(races_join_df , [results_df_filtered.race_id == races_join_df.race_id])\
+# MAGIC %md
+# MAGIC #### Join result table with the orthers
+
+# COMMAND ----------
+
+final_df = results_df_filtered \
+                    .join(races_join_df , [results_df_filtered.race_id == races_join_df.race_id])\
                     .join(drivers_df , [results_df_filtered.driver_id == drivers_df.driver_id])\
                     .join(constructors_df , [results_df_filtered.constructor_id == constructors_df.constructor_id])\
-                    .select('race_year','race_name','race_date','location',drivers_df.driver_id,drivers_df.name.alias('driver_name') , drivers_df.number.alias('driver_number') ,drivers_df.nationality.alias('driver_nationality'),constructors_df.name.alias('team'),'grid','fastest_lap','time','points','position',results_df_filtered.race_id ,results_df_filtered.file_date)\
+                    .select('season','round','race_name','race_date','circuit_country','circuit_locality',
+                        concat(col('given_name'),lit(' '),col('family_name')).alias('driver_name') ,
+                        'driver_nationality','car_number','constructors_name',
+                        'grid','laps','total_time','points','position','status',
+                        results_df_filtered.race_id ,results_df_filtered.constructor_id,
+                        results_df_filtered.driver_id,results_df_filtered.circuit_id,
+                        results_df_filtered.ingestion_date
+                    )\
                     .withColumn('created_date',current_timestamp()) \
-                    .orderBy(col('race_year').desc(),col('points').desc())
+                    .orderBy(col('season').desc(),col('points').desc())
 
+
+# COMMAND ----------
+
+display(final_df)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC #### Write data
 
 # COMMAND ----------
 
 # write to datalake
 path =f'{presentation_path}/race_results'
-condition = 'tgt.driver_id = up.driver_id and tgt.race_id = up.race_id and tgt.team = up.team and tgt.race_year = up.race_year '
-partitionOverwrite(df=final_df ,dbname='f1_presentation',tablename='race_results',parttion_column='race_year' ,path=path , condition=condition )
+condition = 'tgt.driver_id = up.driver_id and \
+            tgt.constructor_id = up.constructor_id  and \
+            tgt.circuit_id = up.circuit_id and \
+            tgt.race_id = up.race_id '
+partitionOverwrite(df=final_df ,dbname='f1_presentation',tablename='race_results',parttion_column='race_id' ,path=path , condition=condition )
 
 # COMMAND ----------
 
@@ -65,7 +109,7 @@ dbutils.notebook.exit('success')
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select race_id , count(1) from f1_presentation.race_results
+# MAGIC select race_id , count(1) from hive_metastore.f1_presentation.race_results
 # MAGIC group by 1 
 # MAGIC order by 1 desc;
 # MAGIC
@@ -73,9 +117,10 @@ dbutils.notebook.exit('success')
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from f1_presentation.race_results
-# MAGIC
+# MAGIC select count(*)
+# MAGIC from hive_metastore.f1_presentation.race_results
 
 # COMMAND ----------
 
-
+# MAGIC %sql
+# MAGIC drop table hive_metastore.f1_presentation.results

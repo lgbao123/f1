@@ -44,6 +44,7 @@ final_df = results_df.groupBy('race_year','team') \
                              
                              
 
+display(final_df)
 
 
 # COMMAND ----------
@@ -63,9 +64,4 @@ dbutils.notebook.exit('success')
 # MAGIC select * from f1_presentation.constructor_standings
 
 # COMMAND ----------
-
-display(final_df)
-
-# COMMAND ----------
-
 

@@ -6,56 +6,77 @@
 # Library
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
+from pyspark.sql.window import Window
+from datetime import datetime
 # Parameter
 dbutils.widgets.text('p_file_date','')
 p_file_date = dbutils.widgets.get('p_file_date')
+year = datetime.strptime(p_file_date,'%Y-%m-%d').strftime('%Y')
+month = datetime.strptime(p_file_date,'%Y-%m-%d').strftime('%m')
+day = datetime.strptime(p_file_date,'%Y-%m-%d').strftime('%d')
+
 
 # COMMAND ----------
 
-input_path = f'{raw_path}/{p_file_date}/circuits.csv'
+# MAGIC %md
+# MAGIC ### Read data
 
-#Define schema 
-circuits_schema = StructType([
-    StructField('circuitId',IntegerType(),False),
-    StructField('circuitRef',StringType(),True),
-    StructField('name',StringType(),True),
-    StructField('location',StringType(),True),
-    StructField('country',StringType(),True),
-    StructField('lat',DoubleType(),True),
-    StructField('lng',DoubleType(),True),
-    StructField('alt',IntegerType(),True),
-    StructField('url',StringType(),True)
-])
-#read file csv
-circuits_df = spark.read.csv(input_path,header = True,schema = circuits_schema)
+# COMMAND ----------
 
-circuits_df.show(5)
-circuits_df.printSchema()
+relative_path = f'/ErgastApi/Circuit/year={year}/month={month}/day={day}/circuit.json'
+input_path = f'{raw_path}/{relative_path}'
+df = spark.read.json(input_path)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC #### Exploded, convention name, add audit column into data
+
+# COMMAND ----------
+
+df1 = df.select(col('MRData.CircuitTable.*')) \
+        .withColumn('Circuits',explode('Circuits')) \
+        .select(
+                col('Circuits.circuitId').alias('circuit_id'),
+                col('Circuits.circuitName').alias('circuit_name'),
+                col('Circuits.Location.country').alias('circuit_country'),
+                col('Circuits.Location.locality').alias('circuit_locality'),
+                col('Circuits.Location.lat').alias('lat'),
+                col('Circuits.Location.long').alias('long'),
+                col('Circuits.url').alias('url')
+        ) \
+        .withColumn('ingestion_date',lit(p_file_date).cast('date')) \
                     
-
-# COMMAND ----------
-
-# transform
-circuits_df = circuits_df\
-                    .withColumnRenamed('circuitId','circuit_id')\
-                    .withColumnRenamed('circuitRef','circuit_ref')\
-                    .withColumnRenamed('lat','latitude')\
-                    .withColumnRenamed('lng','longtitude')\
-                    .withColumnRenamed('alt','altitude')\
-                    .drop('url')\
-                    .withColumn('ingest_date',current_timestamp()) \
-                    .withColumn('file_date',lit(p_file_date)) 
+display(df1)
 
 
 # COMMAND ----------
 
-display(circuits_df)
+# MAGIC %md
+# MAGIC #### Find duplicate and removed
 
+# COMMAND ----------
+
+check_dup = df1.groupBy('circuit_id').count().filter(col('count') > 1)
+display(check_dup)
+window = Window.partitionBy('circuit_id').orderBy('circuit_id')
+df1 = df1.withColumn('rn',row_number().over(window)).filter(col('rn') == 1).drop('rn')
+# display(df1)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC #### Check null value 
+
+# COMMAND ----------
+
+check_null = df1.select( *[count(when(col(c).isNull(),1)).alias(c) for c in df1.columns] )
+display(check_null)
 
 # COMMAND ----------
 
 # write to datalake
-circuits_df.write.mode('overwrite').format('delta').saveAsTable("f1_processed.circuits")
+df1.write.mode('overwrite').format('delta').option('path',f'{processed_path}/circuits').saveAsTable("hive_metastore.f1_processed.circuits")
 
 # COMMAND ----------
 
@@ -64,8 +85,4 @@ dbutils.notebook.exit('Success')
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from f1_processed.circuits ; 
-
-# COMMAND ----------
-
-
+# MAGIC select * from hive_metastore.f1_processed.circuits ; 

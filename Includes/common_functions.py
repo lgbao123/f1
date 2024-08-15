@@ -1,10 +1,11 @@
 # Databricks notebook source
-from delta.tables import DeltaTable
 
+    
 def partitionOverwrite(df,dbname,tablename,parttion_column,path,condition):
+    from delta.tables import DeltaTable
     try :
         
-        if spark._jsparkSession.catalog().tableExists(dbname,tablename):
+        if spark.catalog.tableExists(f"hive_metastore.{dbname}.{tablename}"):
             targetDF = DeltaTable.forPath(spark, path)
             (targetDF.alias('tgt')
             .merge(df.alias('up'),condition)
@@ -13,7 +14,19 @@ def partitionOverwrite(df,dbname,tablename,parttion_column,path,condition):
             .execute()
             )
         else :
-            df.write.mode('overwrite').partitionBy(parttion_column).format('delta').saveAsTable(f'{dbname}.{tablename}')
+            print('Creating table ...')
+            df.write \
+                .mode('overwrite') \
+                .partitionBy(parttion_column) \
+                .format('delta') \
+                .option('path', f'{path}') \
+                .saveAsTable(f'hive_metastore.{dbname}.{tablename}')
+            ## Change version delta table
+            spark.sql(f'''
+                ALTER TABLE hive_metastore.{dbname}.{tablename} SET TBLPROPERTIES('delta.minReaderVersion' = '2', 'delta.minWriterVersion' = '5') '''
+            )
+
+            
         print(f'Write success to {dbname}.{tablename}')
     except Exception as e:
         print(e)
@@ -25,4 +38,6 @@ def changeDistinctColumnToList(df , column):
 
 # COMMAND ----------
 
-
+def checkNullDF(df):
+    final = df.select([count(when( (df[c].isNull()) | (df[c]=='') ,True)).alias(c) for c in df.columns])
+    final.show()
